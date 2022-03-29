@@ -1,13 +1,14 @@
-import time
+from re import search
+from webbrowser import get
 import pyupbit
-import datetime
+from datetime import datetime,timedelta
 import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import time
 
-access = "AvgwKrDgZmTSwsmQHTxpno9UzZa0ePOUVx6ULMUv"
-secret = "pvXS0u1VMALxNFQ26Mmc2oEWgk49gMexklvcxZgv"
+access = "yKxp6uyD7sCNAfkxVvD8S1d841hw00SZWKoasdl7"
+secret = "gnZD2uyxdgjbxt0L7tmHj6esKYw9xJMNYM53xj4c"
 
 def get_target_price(ticker, k):
     """변동성 돌파 전략으로 매수 목표가 조회"""
@@ -15,11 +16,6 @@ def get_target_price(ticker, k):
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
 
-def get_start_time(ticker):
-    """시작 시간 조회"""
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
-    start_time = df.index[0]
-    return start_time
 
 def get_ma15(ticker):
     """15일 이동 평균선 조회"""
@@ -63,7 +59,6 @@ def get_bestk(ticker):
     return realk
 
 
-
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
@@ -72,46 +67,45 @@ print("autotrade start")
 
 bought_list = []
 bought_list1 = []
+
 while True:
     try:
-      now = datetime.datetime.now()
-      start_time = get_start_time("KRW-WAVES")
-      end_time = start_time + datetime.timedelta(days=1)
-      
-      if start_time < now < end_time - datetime.timedelta(minutes=5):
-        url = "https://www.coingecko.com/ko/거래소/upbit"
-        bs = BeautifulSoup(requests.get(url).text,'html.parser')
-        interest = []
-        ticker_temp = bs.find_all("a", attrs={"rel":"nofollow noopener", "class":"mr-1"})
-        for j in range(10):
-          interest.append('KRW-' + list(ticker_temp[j])[0][1:-5])
-        for i in interest:
-          bestk=get_bestk(i)
-          target_price = get_target_price(i, bestk)
-          ma15 = get_ma15(i)
-          current_price = get_current_price(i)
-          if len(bought_list) < 5 :
-            if i not in bought_list:
-              if target_price < current_price and ma15 < current_price:
-                bought_list.append(i)
-                bought_list1.append(i)
-                krw = get_balance("KRW")
-                krw = krw/(6-len(bought_list))
-                if krw > 5000:
-                  upbit.buy_market_order(i, krw*0.9995)                     
-      else:
-        search = 'KRW-'
-        for i, word in enumerate(bought_list):
-            if search in word: 
-                bought_list[i] = word.strip(search)
-        for j in range(len(bought_list1)):
-            waves = get_balance(bought_list[j])
-            upbit.sell_market_oreder(bought_list1[j],waves*0.9995)
-        bought_list = []
-        bought_list1 = []
+        now = datetime.now()
+        start_time = now.replace(hour=9, minute=15, second=0, microsecond=0)
+        end_time = start_time + timedelta(days=1)
 
-      time.sleep(1)
-
+        if start_time<now<end_time - timedelta(minutes=5):
+            url = "https://www.coingecko.com/ko/거래소/upbit"
+            bs = BeautifulSoup(requests.get(url).text,'html.parser')
+            interest = []
+            ticker_temp = bs.find_all("a", attrs={"rel":"nofollow noopener", "class":"mr-1"})
+            for j in range(15):
+                interest.append('KRW-' + list(ticker_temp[j])[0][1:-5])
+            for i in interest:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                print(i,target_price)
+                if target_price < current_price and ma15 < current_price:
+                    bought_list.append(i)
+                    bought_list1.append(i)
+                    krw = get_balance('KRW')
+                    krw = krw/(6-len(bought_list))
+                    if krw > 5000:
+                        upbit.buy_market_order(i, krw*0.9995)
+        else:
+            search = 'KRW-'
+            for i, word in enumerate(bought_list):
+                if search in word:
+                    bought_list[i] = word.strip(search)
+            
+            for j in range(len(bought_list1)):
+                waves = get_balance(bought_list[j])
+                upbit.sell_market_order(bought_list[j],waves*0.9995)
+            bought_list = []
+            bought_list1 = []
+        time.sleep(2)         
     except Exception as e:
         print(e)
         time.sleep(1)
