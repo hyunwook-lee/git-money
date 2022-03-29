@@ -58,6 +58,11 @@ def get_bestk(ticker):
     realk=(bestk.index(max(bestk))+1)/10
     return realk
 
+def get_start_time(ticker):
+    """시작 시간 조회"""
+    df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
+    start_time = df.index[0]
+    return start_time
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
@@ -72,9 +77,10 @@ bought_list2 = []
 while True:
     try:
         now = datetime.now()
+        start_time = get_start_time("KRW-BTC")
         start_time1 = now.replace(hour=9, minute=15, second=0, microsecond=0)
-        start_time2 = now.replace(hour=21,minute=30,second=0,microsecond=0)
-        end_time1 = now.replace(hour=11, minute=0, second=0, microsecond=0)
+        start_time2 = start_time.replace(hour=21,minute=30,second=0,microsecond=0)
+        end_time1 = start_time.replace(hour=11, minute=0, second=0, microsecond=0)
         end_time2 = start_time1 + timedelta(days=1)
 
         if start_time1<now<end_time1 :
