@@ -67,14 +67,17 @@ print("autotrade start")
 
 bought_list = []
 bought_list1 = []
+bought_list2 = []
 
 while True:
     try:
         now = datetime.now()
-        start_time = now.replace(hour=9, minute=15, second=0, microsecond=0)
-        end_time = start_time + timedelta(days=1)
+        start_time1 = now.replace(hour=9, minute=15, second=0, microsecond=0)
+        start_time2 = now.replace(hour=21,minute=30,second=0,microsecond=0)
+        end_time1 = now.replace(hour=11, minute=0, second=0, microsecond=0)
+        end_time2 = start_time1 + timedelta(days=1)
 
-        if start_time<now<end_time - timedelta(minutes=5):
+        if start_time1<now<end_time1 :
             url = "https://www.coingecko.com/ko/거래소/upbit"
             bs = BeautifulSoup(requests.get(url).text,'html.parser')
             interest = []
@@ -87,13 +90,40 @@ while True:
                 ma15 = get_ma15(i)
                 current_price = get_current_price(i)
                 print(i,target_price)
-                if target_price < current_price and ma15 < current_price:
-                    bought_list.append(i)
-                    bought_list1.append(i)
-                    krw = get_balance('KRW')
-                    krw = krw/(6-len(bought_list))
-                    if krw > 5000:
-                        upbit.buy_market_order(i, krw*0.9995)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list1.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+
+        if start_time2<now<end_time2 - timedelta(minutes=20):
+            url = "https://www.coingecko.com/ko/거래소/upbit"
+            bs = BeautifulSoup(requests.get(url).text,'html.parser')
+            interest = []
+            ticker_temp = bs.find_all("a", attrs={"rel":"nofollow noopener", "class":"mr-1"})
+            for j in range(15):
+                interest.append('KRW-' + list(ticker_temp[j])[0][1:-5])
+            for i in interest:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                print(i,target_price)
+                if len(bought_list) < 5 :
+                    if i not in bought_list2:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list1.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+
         else:
             search = 'KRW-'
             for i, word in enumerate(bought_list):
