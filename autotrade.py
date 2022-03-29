@@ -101,7 +101,7 @@ while True:
                             if krw > 5000:
                                 upbit.buy_market_order(i, krw*0.9995)
 
-        if start_time2<now<end_time2 - timedelta(minutes=20):
+        elif start_time2<now<end_time2 - timedelta(minutes=20):
             url = "https://www.coingecko.com/ko/거래소/upbit"
             bs = BeautifulSoup(requests.get(url).text,'html.parser')
             interest = []
@@ -119,10 +119,13 @@ while True:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
                             bought_list1.append(i)
+                            bought_list2.append(i)
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
                                 upbit.buy_market_order(i, krw*0.9995)
+        elif len(bought_list2) == 10:
+            bought_list2 = []
 
         else:
             search = 'KRW-'
