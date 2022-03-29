@@ -124,7 +124,7 @@ while True:
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
                                 upbit.buy_market_order(i, krw*0.9995)
-        elif len(bought_list2) == 10:
+        elif len(bought_list2) == 10 and now == end_time2 - timedelta(minutes=20):
             bought_list2 = []
 
         else:
