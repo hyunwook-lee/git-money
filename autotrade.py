@@ -6,6 +6,7 @@ import numpy as np
 import requests
 from bs4 import BeautifulSoup
 import time
+import schedule 
 
 access = "yKxp6uyD7sCNAfkxVvD8S1d841hw00SZWKoasdl7"
 secret = "gnZD2uyxdgjbxt0L7tmHj6esKYw9xJMNYM53xj4c"
@@ -64,9 +65,23 @@ def get_start_time(ticker):
     start_time = df.index[0]
     return start_time
 
+def reset():
+    bought_list=[]
+    bought_list1=[]
+    return bought_list,bought_list1
+
+def reset2():
+    bought_list2 = []
+    return bought_list2
+
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
+
+#리스트 초기화
+schedule.every().day.at("11:05").do(reset)
+schedule.every().day.at("08:59").do(reset)
+schedule.every().day.at("09:00").do(reset2)
 
 #자동매매 시작
 
@@ -76,9 +91,10 @@ bought_list2 = []
 
 while True:
     try:
+        schedule.run_pending()
         now = datetime.now()
         start_time = get_start_time("KRW-BTC")
-        start_time1 = now.replace(hour=9, minute=15, second=0, microsecond=0)
+        start_time1 = start_time.replace(hour=9, minute=15, second=0, microsecond=0)
         start_time2 = start_time.replace(hour=21,minute=30,second=0,microsecond=0)
         end_time1 = start_time.replace(hour=11, minute=0, second=0, microsecond=0)
         end_time2 = start_time1 + timedelta(days=1)
@@ -106,6 +122,7 @@ while True:
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
                                 upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
 
         elif start_time2<now<end_time2 - timedelta(minutes=20):
             url = "https://www.coingecko.com/ko/거래소/upbit"
@@ -130,20 +147,17 @@ while True:
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
                                 upbit.buy_market_order(i, krw*0.9995)
-        elif len(bought_list2) == 10 and now == end_time2 - timedelta(minutes=20):
-            bought_list2 = []
+            time.sleep(30)
 
         else:
             search = 'KRW-'
             for i, word in enumerate(bought_list):
                 if search in word:
                     bought_list[i] = word.strip(search)
-            
+                    
             for j in range(len(bought_list1)):
                 waves = get_balance(bought_list[j])
                 upbit.sell_market_order(bought_list[j],waves*0.9995)
-            bought_list = []
-            bought_list1 = []
         time.sleep(2)         
     except Exception as e:
         print(e)
