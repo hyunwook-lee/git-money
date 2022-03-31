@@ -65,10 +65,16 @@ def get_start_time(ticker):
     start_time = df.index[0]
     return start_time
 
+def sell_all(coin) :
+    """전량매도"""
+    balance = upbit.get_balance(coin)
+    price = pyupbit.get_current_price(coin)
+    if price * balance >= 5000 :
+        print(upbit.sell_market_order(coin, balance))
+
 def reset():
     bought_list=[]
-    bought_list1=[]
-    return bought_list,bought_list1
+    return bought_list
 
 def reset2():
     bought_list2 = []
@@ -79,14 +85,13 @@ upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
 
 #리스트 초기화
-schedule.every().day.at("11:05").do(reset)
-schedule.every().day.at("08:59").do(reset)
-schedule.every().day.at("09:00").do(reset2)
+schedule.every().day.at("11:35").do(reset)
+schedule.every().day.at("09:00").do(reset)
+schedule.every().day.at("09:01").do(reset2)
 
 #자동매매 시작
 
 bought_list = []
-bought_list1 = []
 bought_list2 = []
 
 while True:
@@ -94,9 +99,9 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         start_time = get_start_time("KRW-BTC")
-        start_time1 = start_time.replace(hour=9, minute=15, second=0, microsecond=0)
-        start_time2 = start_time.replace(hour=21,minute=30,second=0,microsecond=0)
-        end_time1 = start_time.replace(hour=11, minute=0, second=0, microsecond=0)
+        start_time1 = start_time.replace(hour=9, minute=10, second=0, microsecond=0)
+        start_time2 = start_time.replace(hour=17,minute=30,second=0,microsecond=0)
+        end_time1 = start_time.replace(hour=11, minute=30, second=0, microsecond=0)
         end_time2 = start_time1 + timedelta(days=1)
 
         if start_time1<now<end_time1 :
@@ -116,7 +121,6 @@ while True:
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
-                            bought_list1.append(i)
                             bought_list2.append(i)
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
@@ -124,7 +128,7 @@ while True:
                                 upbit.buy_market_order(i, krw*0.9995)
             time.sleep(30)
 
-        elif start_time2<now<end_time2 - timedelta(minutes=20):
+        if start_time2<now<end_time2 - timedelta(minutes=20):
             url = "https://www.coingecko.com/ko/거래소/upbit"
             bs = BeautifulSoup(requests.get(url).text,'html.parser')
             interest = []
@@ -141,7 +145,6 @@ while True:
                     if i not in bought_list2:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
-                            bought_list1.append(i)
                             bought_list2.append(i)
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
@@ -149,15 +152,14 @@ while True:
                                 upbit.buy_market_order(i, krw*0.9995)
             time.sleep(30)
 
-        else:
-            search = 'KRW-'
-            for i, word in enumerate(bought_list):
-                if search in word:
-                    bought_list[i] = word.strip(search)
-                    
-            for j in range(len(bought_list1)):
-                waves = get_balance(bought_list[j])
-                upbit.sell_market_order(bought_list[j],waves*0.9995)
+        if now.hour == 8 and now.minute == 55 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+
+        if now.hour == 12 and now.minute == 00 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+
         time.sleep(2)         
     except Exception as e:
         print(e)
