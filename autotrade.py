@@ -8,12 +8,12 @@ from bs4 import BeautifulSoup
 import time
 import schedule 
 
-access = "yKxp6uyD7sCNAfkxVvD8S1d841hw00SZWKoasdl7"
-secret = "gnZD2uyxdgjbxt0L7tmHj6esKYw9xJMNYM53xj4c"
+access = "gibkBxgdWxY0GC0yO2psvAIp4BBNHp2i6OUA4f4x"
+secret = "skXnZ5OOjkh8nD1718xPWuurxpA2vEamc6jLMRzA"
 
 def get_target_price(ticker, k):
     """변동성 돌파 전략으로 매수 목표가 조회"""
-    df = pyupbit.get_ohlcv(ticker, interval="day", count=2)
+    df = pyupbit.get_ohlcv(ticker, interval="minute240", count=2)
     target_price = df.iloc[0]['close'] + (df.iloc[0]['high'] - df.iloc[0]['low']) * k
     return target_price
 
@@ -85,9 +85,18 @@ upbit = pyupbit.Upbit(access, secret)
 print("autotrade start")
 
 #리스트 초기화
-schedule.every().day.at("11:35").do(reset)
-schedule.every().day.at("09:00").do(reset)
-schedule.every().day.at("09:01").do(reset2)
+schedule.every().day.at("00:57").do(reset)
+schedule.every().day.at("04:57").do(reset)
+schedule.every().day.at("08:57").do(reset)
+schedule.every().day.at("12:57").do(reset)
+schedule.every().day.at("16:57").do(reset)
+schedule.every().day.at("20:57").do(reset)
+schedule.every().day.at("00:57").do(reset2)
+schedule.every().day.at("04:57").do(reset2)
+schedule.every().day.at("08:57").do(reset2)
+schedule.every().day.at("12:57").do(reset2)
+schedule.every().day.at("16:57").do(reset2)
+schedule.every().day.at("20:57").do(reset2)
 
 #자동매매 시작
 
@@ -99,24 +108,117 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         start_time = get_start_time("KRW-BTC")
+        new_start_time = start_time + timedelta(days=1)
         start_time1 = start_time.replace(hour=9, minute=10, second=0, microsecond=0)
-        start_time2 = start_time.replace(hour=17,minute=30,second=0,microsecond=0)
-        end_time1 = start_time.replace(hour=11, minute=30, second=0, microsecond=0)
-        end_time2 = start_time1 + timedelta(days=1)
+        start_time2 = start_time.replace(hour=13,minute=10,second=0,microsecond=0)
+        start_time3 = start_time.replace(hour=17,minute=10,second=0,microsecond=0)
+        start_time4 = start_time.replace(hour=21,minute=10,second=0,microsecond=0)
+        start_time5 = new_start_time.replace(hour=1,minute=10,second=0,microsecond=0)
+        start_time6 = new_start_time.replace(hour=5,minute=10,second=0,microsecond=0)
+        end_time1 = start_time.replace(hour=12, minute=55, second=0, microsecond=0)
+        end_time2 = start_time.replace(hour=16, minute=55, second=0, microsecond=0)
+        end_time3 = start_time.replace(hour=20, minute=55, second=0, microsecond=0)
+        end_time4 = new_start_time.replace(hour=0, minute=55, second=0, microsecond=0)
+        end_time5 = new_start_time.replace(hour=4, minute=55, second=0, microsecond=0)
+        end_time6 = new_start_time.replace(hour=8, minute=55, second=0, microsecond=0)
 
         if start_time1<now<end_time1 :
-            url = "https://www.coingecko.com/ko/거래소/upbit"
-            bs = BeautifulSoup(requests.get(url).text,'html.parser')
-            interest = []
-            ticker_temp = bs.find_all("a", attrs={"rel":"nofollow noopener", "class":"mr-1"})
-            for j in range(15):
-                interest.append('KRW-' + list(ticker_temp[j])[0][1:-5])
-            for i in interest:
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
                 bestk = get_bestk(i)
                 target_price = get_target_price(i,bestk)
                 ma15 = get_ma15(i)
                 current_price = get_current_price(i)
-                print(i,target_price)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
+        
+        if start_time2<now<end_time2 :
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
+        
+        if start_time3<now<end_time3 :
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
+        
+        if start_time4<now<end_time4 :
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
+        
+        if start_time5<now<end_time5 :
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
+                if len(bought_list) < 5 :
+                    if i not in bought_list:
+                        if target_price < current_price and ma15 < current_price:
+                            bought_list.append(i)
+                            bought_list2.append(i)
+                            krw = get_balance('KRW')
+                            krw = krw/(6-len(bought_list))
+                            if krw > 5000:
+                                upbit.buy_market_order(i, krw*0.9995)
+            time.sleep(30)
+        
+        if start_time6<now<end_time6 :
+            a=pyupbit.get_tickers(fiat="KRW")
+            for i in a:
+                bestk = get_bestk(i)
+                target_price = get_target_price(i,bestk)
+                ma15 = get_ma15(i)
+                current_price = get_current_price(i)
                 if len(bought_list) < 5 :
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
@@ -128,35 +230,27 @@ while True:
                                 upbit.buy_market_order(i, krw*0.9995)
             time.sleep(30)
 
-        if start_time2<now<end_time2 - timedelta(minutes=20):
-            url = "https://www.coingecko.com/ko/거래소/upbit"
-            bs = BeautifulSoup(requests.get(url).text,'html.parser')
-            interest = []
-            ticker_temp = bs.find_all("a", attrs={"rel":"nofollow noopener", "class":"mr-1"})
-            for j in range(15):
-                interest.append('KRW-' + list(ticker_temp[j])[0][1:-5])
-            for i in interest:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                print(i,target_price)
-                if len(bought_list) < 5 :
-                    if i not in bought_list2:
-                        if target_price < current_price and ma15 < current_price:
-                            bought_list.append(i)
-                            bought_list2.append(i)
-                            krw = get_balance('KRW')
-                            krw = krw/(6-len(bought_list))
-                            if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
-            time.sleep(30)
-
-        if now.hour == 8 and now.minute == 55 and now.second == 0:
+        if now.hour == 12 and now.minute == 56 and now.second == 0:
             for i in bought_list:
                 sell_all(i)
 
-        if now.hour == 12 and now.minute == 00 and now.second == 0:
+        if now.hour == 16 and now.minute == 56 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+        
+        if now.hour == 20 and now.minute == 56 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+        
+        if now.hour == 0 and now.minute == 56 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+        
+        if now.hour == 4 and now.minute == 56 and now.second == 0:
+            for i in bought_list:
+                sell_all(i)
+        
+        if now.hour == 8 and now.minute == 56 and now.second == 0:
             for i in bought_list:
                 sell_all(i)
 
