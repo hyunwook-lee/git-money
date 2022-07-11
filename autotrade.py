@@ -125,11 +125,11 @@ while True:
         if start_time1<now<end_time1 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -137,17 +137,17 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
         
         if start_time2<now<end_time2 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -155,17 +155,17 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
         
         if start_time3<now<end_time3 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -173,17 +173,17 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
         
         if start_time4<now<end_time4 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -191,17 +191,17 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
         
         if start_time5<now<end_time5 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -209,17 +209,17 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
         
         if start_time6<now<end_time6 :
             a=pyupbit.get_tickers(fiat="KRW")
             for i in a:
-                bestk = get_bestk(i)
-                target_price = get_target_price(i,bestk)
-                ma15 = get_ma15(i)
-                current_price = get_current_price(i)
-                if len(bought_list) < 5 :
+                if len(bought_list) < 5:
+                    bestk = get_bestk(i)
+                    target_price = get_target_price(i,bestk)
+                    ma15 = get_ma15(i)
+                    current_price = get_current_price(i)
                     if i not in bought_list:
                         if target_price < current_price and ma15 < current_price:
                             bought_list.append(i)
@@ -227,7 +227,7 @@ while True:
                             krw = get_balance('KRW')
                             krw = krw/(6-len(bought_list))
                             if krw > 5000:
-                                upbit.buy_market_order(i, krw*0.9995)
+                                upbit.buy_market_order(i,krw*0.9995)
             time.sleep(30)
 
         if now.hour == 12 and now.minute == 56 and now.second == 0:
