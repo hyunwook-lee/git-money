@@ -232,26 +232,32 @@ while True:
         if now.hour == 12 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
 
         if now.hour == 16 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
         
         if now.hour == 20 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
         
         if now.hour == 0 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
         
         if now.hour == 4 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
         
         if now.hour == 8 and now.minute == 56 :
             for i in bought_list:
                 sell_all(i)
+            schedule.run_pending()
 
         time.sleep(2)         
     except Exception as e:
