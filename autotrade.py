@@ -91,6 +91,7 @@ while True:
 
         if start_time1<now<end_time1 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
@@ -110,6 +111,7 @@ while True:
         
         if start_time2<now<end_time2 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
@@ -129,6 +131,7 @@ while True:
         
         if start_time3<now<end_time3 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
@@ -148,6 +151,7 @@ while True:
         
         if start_time4<now<end_time4 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
@@ -167,6 +171,7 @@ while True:
         
         if start_time5<now<end_time5 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
@@ -186,6 +191,7 @@ while True:
         
         if start_time6<now<end_time6 :
             a=pyupbit.get_tickers(fiat="KRW")
+            a.remove('KRW-BTT')
             for i in a:
                 if len(bought_list) < 5:
                     new_now = datetime.now()
