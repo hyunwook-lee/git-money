@@ -37,26 +37,6 @@ def get_current_price(ticker):
     """현재가 조회"""
     return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
-def get_ror(ticker,k=0.5):
-    df = pyupbit.get_ohlcv(ticker,count=7)
-    df['range'] = (df['high'] - df['low']) * k
-    df['target'] = df['open'] + df['range'].shift(1)
-
-    df['ror'] = np.where(df['high'] > df['target'],
-                         df['close'] / df['target'],
-                         1)
-
-    ror = df['ror'].cumprod()[-2]
-    return ror
-
-def get_bestk(ticker):
-    bestk =[]
-    for k in np.arange(0.1, 1.0, 0.1):
-        ror = get_ror(ticker,k)
-        bestk.append(ror)
-    realk=(bestk.index(max(bestk))+1)/10
-    return realk
-
 def get_start_time(ticker):
     """시작 시간 조회"""
     df = pyupbit.get_ohlcv(ticker, interval="day", count=1)
@@ -116,8 +96,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 12 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
@@ -136,8 +115,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 16 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
@@ -156,8 +134,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 20 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
@@ -176,8 +153,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 0 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
@@ -196,8 +172,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 4 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
@@ -216,8 +191,7 @@ while True:
                     new_now = datetime.now()
                     if new_now.hour == 8 and new_now.minute == 55:
                         break
-                    bestk = get_bestk(i)
-                    target_price = get_target_price(i,bestk)
+                    target_price = get_target_price(i,0.5)
                     ma15 = get_ma15(i)
                     current_price = get_current_price(i)
                     if i not in bought_list:
