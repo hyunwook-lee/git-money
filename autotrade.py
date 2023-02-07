@@ -7,8 +7,8 @@ import numpy as np
 import time
 import schedule 
 
-access = "gibkBxgdWxY0GC0yO2psvAIp4BBNHp2i6OUA4f4x"
-secret = "skXnZ5OOjkh8nD1718xPWuurxpA2vEamc6jLMRzA"
+access = "cpaPaCmTIDCqvxX6pFmI7DjStWREyVunKg8R6qs6"
+secret = "JCclRlsEJb93TGeDRIEjbKLsTmyP8UapqGFmJBRA"
 
 def get_target_price(ticker, k):
     """Fetch target purchase price using volatility breakout strategy"""
@@ -59,9 +59,34 @@ def get_start_time(ticker):
     start_time = df.index[0]
     return start_time
 
+def get_ticker_list(url):
+    """Fetch the ticker list from the specified URL"""
+    try:
+        res = requests.get(url)
+        res.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred while fetching the URL: {e}")
+        return []
+
+    bs = BeautifulSoup(res.text,'html.parser')
+    selector = "tbody td div a"
+    columns = bs.select(selector)
+
+    ticker_list1 = [x.text.strip().replace('/','-') for x in columns]
+
+    def change_pair(pair):
+        """Reverse the order of symbols in each pair"""
+        return "-".join(pair.split("-")[::-1])
+
+    ticker_list = [change_pair(pair) for pair in ticker_list1]
+    ticker_list = [x for x in ticker_list if x.strip()]
+    
+    return ticker_list
+
 def reset():
-    bought_list=[]
-    return bought_list
+    KRW_bought_list=[]
+    BTC_bought_list=[]
+    return KRW_bought_list,BTC_bought_list
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
@@ -77,7 +102,13 @@ schedule.every().day.at("20:57").do(reset)
 
 #자동매매 시작
 
-bought_list = []
+KRW_bought_list = []
+BTC_bought_list = []
+
+
+# URL to
+url = "https://coinmarketcap.com/ko/exchanges/upbit/"
+ticker_list = get_ticker_list(url)
 
 while True:
   try:
@@ -96,132 +127,156 @@ while True:
     end_time4 = start_time4 + timedelta(hours=3,minutes=45)
     end_time5 = start_time5 + timedelta(hours=3,minutes=45)
     end_time6 = start_time6 + timedelta(hours=3,minutes=45)
+    
     if start_time1<now<end_time1:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
+
           time.sleep(10)
     
     elif start_time2 < now < end_time2:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
           time.sleep(10)
     
     elif start_time3 < now < end_time3:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
           time.sleep(10)
     
     elif start_time4 < now < end_time4:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
           time.sleep(10)
     
     elif start_time5 < now < end_time5:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
           time.sleep(10)
     
     elif start_time6 < now < end_time6:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
-        if len(bought_list) < 5:
+        if len(KRW_bought_list) < 5:
           target_price = get_target_price(i,0.5)
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
-          if i not in bought_list:
+          if i not in KRW_bought_list and BTC_bought_list:
             if target_price < current_price and ma15 < current_price:
-              bought_list.append(i)
-              krw = get_balance('KRW')
-              krw = krw/(6-len(bought_list))
-              if krw > 5000:
-                upbit.buy_market_order(i,krw*0.9995)
-          time.sleep(10)
-
+              if i.startswith('B'):
+                BTC_bought_list.append(i)
+                btc = get_balance('BTC')
+                btc = krw/(4-len(BTC_bought_list))
+                upbit.buy_market_order(i,btc*0.9995)
+              if i.startswith('K'):
+                KRW_bought_list.append(i)
+                krw = get_balance('KRW')
+                krw = krw/(6-len(KRW_bought_list))
+                if krw > 5000:
+                  upbit.buy_market_order(i,krw*0.9995)
     else:
       for i in bought_list:
         sell_all(i)
