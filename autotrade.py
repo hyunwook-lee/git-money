@@ -59,30 +59,6 @@ def get_start_time(ticker):
     start_time = df.index[0]
     return start_time
 
-def get_ticker_list(url):
-    """Fetch the ticker list from the specified URL"""
-    try:
-        res = requests.get(url)
-        res.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while fetching the URL: {e}")
-        return []
-
-    bs = BeautifulSoup(res.text,'html.parser')
-    selector = "tbody td div a"
-    columns = bs.select(selector)
-
-    ticker_list1 = [x.text.strip().replace('/','-') for x in columns]
-
-    def change_pair(pair):
-        """Reverse the order of symbols in each pair"""
-        return "-".join(pair.split("-")[::-1])
-
-    ticker_list = [change_pair(pair) for pair in ticker_list1]
-    ticker_list = [x for x in ticker_list if x.strip()]
-    
-    return ticker_list
-
 def reset():
     bought_list=[]
     return bought_list
@@ -103,11 +79,6 @@ schedule.every().day.at("20:57").do(reset)
 
 bought_list = []
 
-
-# URL to
-url = "https://coinmarketcap.com/ko/exchanges/upbit/"
-ticker_list = get_ticker_list(url)
-
 while True:
   try:
     now = datetime.now()
@@ -126,7 +97,7 @@ while True:
     end_time5 = start_time5 + timedelta(hours=3,minutes=45)
     end_time6 = start_time6 + timedelta(hours=3,minutes=45)
     if start_time1<now<end_time1:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -147,7 +118,7 @@ while True:
           time.sleep(10)
     
     elif start_time2 < now < end_time2:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -168,7 +139,7 @@ while True:
           time.sleep(10)
     
     elif start_time3 < now < end_time3:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -189,7 +160,7 @@ while True:
           time.sleep(10)
     
     elif start_time4 < now < end_time4:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -210,7 +181,7 @@ while True:
           time.sleep(10)
     
     elif start_time5 < now < end_time5:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -231,7 +202,7 @@ while True:
           time.sleep(10)
     
     elif start_time6 < now < end_time6:
-      ticker_list = get_ticker_list(url)
+      ticker_list = pyupbit.get_tickers(fiat="KRW")
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
