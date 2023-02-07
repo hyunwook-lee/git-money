@@ -152,8 +152,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
@@ -173,8 +171,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
@@ -194,8 +190,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
@@ -215,8 +209,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
@@ -236,8 +228,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
@@ -257,8 +247,6 @@ while True:
           risk_price = get_risk_price(i,0.5)
           ma15 = get_ma15(i)
           current_price = get_current_price(i)
-          if current_price < risk_price:
-            sell_all(i)
           if i not in bought_list:
             if target_price < current_price and ma15 < current_price:
               bought_list.append(i)
