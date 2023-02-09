@@ -142,7 +142,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
@@ -168,7 +168,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
@@ -194,7 +194,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
@@ -220,7 +220,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
@@ -246,7 +246,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
@@ -272,7 +272,7 @@ while True:
           current_price = get_current_price(i)
           if i.startswith('K'):
             if i in KRW_bought_list:
-              if target_price*1.05 < current_price or risk_price > current_price:
+              if target_price*1.07 < current_price or risk_price > current_price:
                 sell_all(i)
                 KRWsv_bought_list.remove(i)
             if i not in KRW_bought_list:
