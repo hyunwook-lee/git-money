@@ -130,7 +130,8 @@ while True:
     end_time6 = start_time6 + timedelta(hours=3,minutes=45)
 
     if start_time1<now<end_time1:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -155,7 +156,8 @@ while True:
           time.sleep(10)
     
     elif start_time2 < now < end_time2:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -180,7 +182,8 @@ while True:
           time.sleep(10)
     
     elif start_time3 < now < end_time3:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -205,7 +208,8 @@ while True:
           time.sleep(10)
     
     elif start_time4 < now < end_time4:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -230,7 +234,8 @@ while True:
           time.sleep(10)
     
     elif start_time5 < now < end_time5:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
@@ -255,7 +260,8 @@ while True:
           time.sleep(10)
     
     elif start_time6 < now < end_time6:
-      ticker_list = pyupbit.get_tickers(fiat="KRW")
+      ticker_list = get_ticker_list(url)
+      ticker_list = ticker_list[:30]
       if 'KRW-BTT' in ticker_list:
         ticker_list.remove('KRW-BTT')
       for i in ticker_list:
