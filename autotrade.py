@@ -128,7 +128,7 @@ while True:
         now = datetime.now()
         ticker_list = get_ticker_list()[:30]
         if 'KRW-BTT' in ticker_list:
-            ticker_list.remove('KRW-BTT')
+            ticker_list.remove('KRW-BTC')
         
         # 09:00~08:40 사이에만 매수 진행 (08:40~09:00 제외)
         if now.hour >= 9 or now.hour < 8:
