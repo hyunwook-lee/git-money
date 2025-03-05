@@ -16,7 +16,7 @@ secret = "ARaqQQFOx82OERax8bLyPy5ccxXG91aOggjYzrxu"
 
 # 시가총액 상위 30개 코인 고정 리스트
 ticker_list = [
-    "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOGE", "KRW-ADA", "KRW-TRXT", "KRW-LINK", "KRW-HBAR", "KRW-XLM",
+    "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOGE", "KRW-ADA", "KRW-TRX", "KRW-LINK", "KRW-HBAR", "KRW-XLM",
     "KRW-AVAX", "KRW-SHIB", "KRW-SUI", "KRW-DOT", "KRW-BCH", "KRW-UNI", "KRW-NEAR", "KRW-APT", "KRW-ONDO", "KRW-AAVE",
     "KRW-ETC", "KRW-TRUMP", "KRW-MNT", "KRW-VET", "KRW-POL", "KRW-ALGO", "KRW-CRO", "KRW-RENDER", "KRW-ATOM", "KRW-ARB"
 ]
@@ -31,7 +31,7 @@ def get_ror(k=0.5, ticker="KRW-BTC"):
                          df['close'] / df['target'],
                          1)
 
-    ror = df['ror'].cumprod()[-2]
+    ror = df['ror'].cumprod().iloc[-2]
     return ror
 
 def get_optimal_k(ticker):
@@ -72,13 +72,20 @@ def get_balance(ticker):
             return float(b['balance']) if b['balance'] is not None else 0
     return 0
 
+def sell_partial():
+    for coin in KRW_bought_list[:]:
+        balance = upbit.get_balance(coin)
+        price = pyupbit.get_current_price(coin)
+        if price * balance >= 5000:
+            upbit.sell_market_order(coin, balance * 0.5)  # 50% 매도
+
 def sell_all():
     for coin in KRW_bought_list[:]:
         balance = upbit.get_balance(coin)
         price = pyupbit.get_current_price(coin)
         if price * balance >= 5000:
-            upbit.sell_market_order(coin, balance)
-            KRW_sold_list.append(coin)  # 매도된 코인은 KRW_sold_list에 추가
+            upbit.sell_market_order(coin, balance)  # 남은 수량 전량 매도
+            KRW_sold_list.append(coin)
             KRW_bought_list.remove(coin)
 
 # 현재가 가져오기
@@ -93,8 +100,10 @@ logging.info("Auto trade started")
 KRW_bought_list = []
 KRW_sold_list = []
 
-# 매도 스케줄 설정 (08:40~09:00)
-schedule.every().day.at("08:40").do(sell_all)
+# 08:40~08:55 동안 반복적으로 매도 실행
+schedule.every().day.at("08:40").do(lambda: schedule.every(5).minutes.until("08:55").do(sell_partial))
+schedule.every().day.at("08:55").do(sell_all)
+
 # 매도, 매수 리스트 초기화 (09:00 기준)
 schedule.every().day.at("09:00").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
 
@@ -105,8 +114,8 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         
-        # 09:00~08:40 사이에만 매수 진행 (08:40~09:00 제외)
-        if now.hour >= 9 or now.hour < 8:
+        # 09:00~08:30 사이에만 매수 진행 (08:30~09:00 제외)
+        if now.hour >= 9 or (now.hour == 8 and now.minute < 30):
             for i in ticker_list:
                 if len(KRW_bought_list) < 5 and i not in KRW_sold_list:
                     k = get_optimal_k(i)
@@ -118,9 +127,10 @@ while True:
                     if i in KRW_bought_list:
                         risk_price = get_risk_price(i, buy_prices[i])  # 손절가 설정
                         if current_price < risk_price:
-                            upbit.sell_market_order(i, get_balance(i))
-                            KRW_sold_list.append(i)
-                            KRW_bought_list.remove(i)
+                            upbit.sell_market_order(i, get_balance(i) * 0.5)  # 비율 매도 전략
+                            if get_balance(i) * 0.5 < 5000:
+                                KRW_sold_list.append(i)
+                                KRW_bought_list.remove(i)
                     
                     elif target_price < current_price and ma15 < current_price and rsi < 70:
                         KRW_bought_list.append(i)
