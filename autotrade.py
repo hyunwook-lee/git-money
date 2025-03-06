@@ -126,7 +126,12 @@ while True:
                     
                     if i in KRW_bought_list:
                         risk_price = get_risk_price(i, buy_prices[i])  # 손절가 설정
+                        print(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")  # 로그 추가
+                        logging.info(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")
+
                         if current_price < risk_price:
+                            print(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
+                            logging.info(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
                             upbit.sell_market_order(i, get_balance(i) * 0.5)  # 비율 매도 전략
                             if get_balance(i) * 0.5 < 5000:
                                 KRW_sold_list.append(i)
