@@ -114,10 +114,13 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         
-        # 10:00~08:30 사이에만 매수 진행 (08:30~09:00 제외)
+        # 10:00~08:30 사이에만 매수 진행 (08:30~10:00 제외)
         if now.hour >= 10 or (now.hour == 8 and now.minute < 30):
             for i in ticker_list:
-            # ✅ 손절 체크는 항상 실행
+                # ✅ 현재가 가져오기 (손절 체크 전에 실행)
+                current_price = get_current_price(i)
+
+                # ✅ 손절 체크
                 if i in KRW_bought_list:
                     risk_price = get_risk_price(i, buy_prices[i])  # 손절가 설정
                     print(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")  # 로그 추가
@@ -128,27 +131,29 @@ while True:
                         logging.info(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
 
                         balance = get_balance(i)
+                        balance = round(balance, 8)  # ✅ 소수점 처리
                         print(f"{i} 매도 요청 수량: {balance}")
                         logging.info(f"{i} 매도 요청 수량: {balance}")
 
-                        
-                        order_result = upbit.sell_market_order(i, balance)
-                        print(f"{i} 매도 결과: {order_result}")
-                        logging.info(f"{i} 매도 결과: {order_result}")
+                        if balance * current_price >= 5000:  # ✅ 최소 주문 금액 확인
+                            order_result = upbit.sell_market_order(i, balance)
+                            print(f"{i} 매도 결과: {order_result}")
+                            logging.info(f"{i} 매도 결과: {order_result}")
 
-                        if order_result is None:
-                            print(f"{i} 매도 실패! API 응답 없음")
-                            logging.error(f"{i} 매도 실패! API 응답 없음")
-                                
-                        elif 'error' in order_result:
-                            print(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
-                            logging.error(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
+                            if order_result is None:
+                                print(f"{i} 매도 실패! API 응답 없음")
+                                logging.error(f"{i} 매도 실패! API 응답 없음")
+                            elif 'error' in order_result:
+                                print(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
+                                logging.error(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
+                        else:
+                            print(f"{i} 매도 불가! 최소 주문 금액 부족")
+                            logging.info(f"{i} 매도 불가! 최소 주문 금액 부족")
 
-                # ✅ 매수 로직은 기존대로 유지
-                if len(KRW_bought_list) < 5 and i not in KRW_sold_list:
+                # ✅ 매수 로직
+                if len(KRW_bought_list) < 5 and i not in KRW_sold_list and i not in KRW_bought_list:
                     k = get_optimal_k(i)
                     target_price = get_target_price(i, k)
-                    current_price = get_current_price(i)
                     ma15 = get_ma15(i)
                     rsi = get_rsi(i)
 
