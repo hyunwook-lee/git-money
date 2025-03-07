@@ -114,49 +114,52 @@ while True:
         schedule.run_pending()
         now = datetime.now()
         
-        # 09:00~08:30 사이에만 매수 진행 (08:30~09:00 제외)
-        if now.hour >= 9 or (now.hour == 8 and now.minute < 30):
+        # 10:00~08:30 사이에만 매수 진행 (08:30~09:00 제외)
+        if now.hour >= 10 or (now.hour == 8 and now.minute < 30):
             for i in ticker_list:
+            # ✅ 손절 체크는 항상 실행
+                if i in KRW_bought_list:
+                    risk_price = get_risk_price(i, buy_prices[i])  # 손절가 설정
+                    print(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")  # 로그 추가
+                    logging.info(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")
+
+                    if current_price < risk_price:
+                        print(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
+                        logging.info(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
+
+                        balance = get_balance(i)
+                        print(f"{i} 매도 요청 수량: {balance}")
+                        logging.info(f"{i} 매도 요청 수량: {balance}")
+
+                        
+                        order_result = upbit.sell_market_order(i, balance)
+                        print(f"{i} 매도 결과: {order_result}")
+                        logging.info(f"{i} 매도 결과: {order_result}")
+
+                        if order_result is None:
+                            print(f"{i} 매도 실패! API 응답 없음")
+                            logging.error(f"{i} 매도 실패! API 응답 없음")
+                                
+                        elif 'error' in order_result:
+                            print(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
+                            logging.error(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
+
+                # ✅ 매수 로직은 기존대로 유지
                 if len(KRW_bought_list) < 5 and i not in KRW_sold_list:
                     k = get_optimal_k(i)
                     target_price = get_target_price(i, k)
                     current_price = get_current_price(i)
                     ma15 = get_ma15(i)
                     rsi = get_rsi(i)
-                    
-                    if i in KRW_bought_list:
-                        risk_price = get_risk_price(i, buy_prices[i])  # 손절가 설정
-                        print(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")  # 로그 추가
-                        logging.info(f"{i} 손절 체크: 현재가 {current_price}, 손절가 {risk_price}")
 
-                        if current_price < risk_price:
-                            print(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
-                            logging.info(f"{i} 손절 매도 실행! 현재가 {current_price} < 손절가 {risk_price}")
-
-                            balance = get_balance(i) * 0.5
-                            print(f"{i} 매도 요청 수량: {balance}")
-                            logging.info(f"{i} 매도 요청 수량: {balance}")
-
-                            if balance >= 5000:  # 최소 주문 금액 조건 확인
-                                order_result = upbit.sell_market_order(i, balance)
-                                print(f"{i} 매도 결과: {order_result}")
-                                logging.info(f"{i} 매도 결과: {order_result}")
-
-                                if order_result is None:
-                                    print(f"{i} 매도 실패! API 응답 없음")
-                                    logging.error(f"{i} 매도 실패! API 응답 없음")
-                                elif 'error' in order_result:
-                                    print(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
-                                    logging.error(f"{i} 매도 실패! 오류 메시지: {order_result['error']}")
-                    
-                    elif target_price < current_price and ma15 < current_price and rsi < 70:
+                    if target_price < current_price and ma15 < current_price and rsi < 70:
                         KRW_bought_list.append(i)
                         krw = get_balance('KRW') / (6 - len(KRW_bought_list))
-                        
+
                         if krw > 5000:
                             upbit.buy_market_order(i, krw * 0.9995)
                             buy_prices[i] = current_price  # 매수가 기록
-                            
+
                             print(f"{i} 매수 실행! 매수가: {current_price}, 투자 금액: {krw}")
                             logging.info(f"{i} 매수 실행! 매수가: {current_price}, 투자 금액: {krw}")
                             
