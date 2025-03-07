@@ -139,6 +139,8 @@ while True:
                             order_result = upbit.sell_market_order(i, balance)
                             print(f"{i} 매도 결과: {order_result}")
                             logging.info(f"{i} 매도 결과: {order_result}")
+                            KRW_sold_list.append(i)
+                            KRW_bought_list.remove(i)
 
                             if order_result is None:
                                 print(f"{i} 매도 실패! API 응답 없음")
