@@ -46,13 +46,8 @@ def get_optimal_k(ticker):
 
 # API 오류 방지를 위한 안전한 가격 조회 함수
 def get_current_price(ticker):
-    try:
-        data = pyupbit.get_orderbook(ticker=ticker)
-        if data and "orderbook_units" in data:
-            return data["orderbook_units"][0]["ask_price"]
-    except Exception as e:
-        logging.error(f"{ticker} 현재가 조회 오류: {e}")
-    return None
+    """현재가 조회"""
+    return pyupbit.get_orderbook(ticker=ticker)["orderbook_units"][0]["ask_price"]
 
 # 목표 가격 및 리스크 가격 계산
 def get_target_price(ticker, k):
@@ -78,13 +73,14 @@ def get_rsi(ticker, period=14):
     return None
 
 def get_balance(ticker):
-    try:
-        balances = upbit.get_balances()
-        for b in balances:
-            if b['currency'] == ticker:
-                return float(b['balance']) if b['balance'] is not None else 0
-    except Exception as e:
-        logging.error(f"{ticker} 잔고 조회 오류: {e}")
+    """잔고 조회"""
+    balances = upbit.get_balances()
+    for b in balances:
+        if b['currency'] == ticker:
+            if b['balance'] is not None:
+                return float(b['balance'])
+            else:
+                return 0
     return 0
 
 # 매도 함수
@@ -136,6 +132,7 @@ while True:
         schedule.run_pending()
         now = datetime.now()
 
+        # ✅ 10시에서 다음날 8시반 까지 매수
         if now.hour >= 10 or (now.hour == 8 and now.minute < 30):
             for i in ticker_list:
                 current_price = get_current_price(i)
@@ -150,6 +147,8 @@ while True:
                     if risk_price is not None and current_price < risk_price:
                         logging.info(f"{i} 손절 매도! 현재가 {current_price} < 손절가 {risk_price}")
                         sell_coin(i)
+                        KRW_sold_list.append(i)
+                        KRW_bought_list.remove(i)
 
                 # ✅ 매수 로직
                 if len(KRW_bought_list) < 5 and i not in KRW_sold_list and i not in KRW_bought_list:
