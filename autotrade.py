@@ -21,6 +21,29 @@ ticker_list = [
     "KRW-ETC", "KRW-TRUMP", "KRW-MNT", "KRW-VET", "KRW-POL", "KRW-ALGO", "KRW-CRO", "KRW-RENDER", "KRW-ATOM", "KRW-ARB"
 ]
 
+# 특정 ticker의 최적 k 값 계산
+def get_ror(k=0.5, ticker="KRW-BTC"):
+    df = pyupbit.get_ohlcv(ticker, count=7)
+    df['range'] = (df['high'] - df['low']) * k
+    df['target'] = df['open'] + df['range'].shift(1)
+    
+    df['ror'] = np.where(df['high'] > df['target'],
+                         df['close'] / df['target'],
+                         1)
+
+    ror = df['ror'].cumprod().iloc[-2]
+    return ror
+
+def get_optimal_k(ticker):
+    best_k = 0.1
+    best_ror = 0
+    for k in np.arange(0.1, 1.0, 0.1):
+        ror = get_ror(k, ticker)
+        if ror > best_ror:
+            best_ror = ror
+            best_k = k
+    return best_k
+
 # API 오류 방지를 위한 안전한 가격 조회 함수
 def get_current_price(ticker):
     try:
