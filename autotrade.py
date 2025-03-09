@@ -85,7 +85,8 @@ def get_balance(ticker):
 
 # 매도 함수
 def sell_coin(coin, percent=1.0):
-    balance = get_balance(coin)
+    asset = coin.split('-')[1]  # 'KRW-XXX' -> 'XXX'
+    balance = get_balance(asset)
     price = get_current_price(coin)
 
     if balance is None or price is None:
@@ -94,24 +95,20 @@ def sell_coin(coin, percent=1.0):
 
     balance = round(balance, 8)
     sell_amount = balance * percent
+    sell_value = sell_amount * price
 
-    if sell_amount * price >= 5000:
-        order_result = upbit.sell_market_order(coin, sell_amount)
+    if sell_value < 5000:
+        logging.info(f"{coin} 매도 불가! 최소 주문 금액 부족 (보유 금액: {sell_value}원)")
+        return
+
+    order_result = upbit.sell_market_order(coin, sell_amount*0.9995)
+    if order_result:
         logging.info(f"{coin} 매도 결과: {order_result}")
-        if order_result is None:
-            logging.error(f"{coin} 매도 실패! API 응답 없음")
     else:
-        logging.info(f"{coin} 매도 불가! 최소 주문 금액 부족")
+        logging.error(f"{coin} 매도 실패! API 응답 없음")
 
-def sell_partial():
-    for coin in KRW_bought_list[:]:
-        sell_coin(coin, percent=0.5)
+    time.sleep(0.5)
 
-def sell_all():
-    for coin in KRW_bought_list[:]:
-        sell_coin(coin)
-        KRW_sold_list.append(coin)
-        KRW_bought_list.remove(coin)
 
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
@@ -123,9 +120,7 @@ KRW_sold_list = []
 buy_prices = {}
 
 # 일정 시간마다 매도 실행
-schedule.every().day.at("08:40").do(lambda: schedule.every(5).minutes.until("08:55").do(sell_partial))
-schedule.every().day.at("08:55").do(sell_all)
-schedule.every().day.at("09:00").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
+schedule.every().day.at("09:57").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
 
 while True:
     try:
@@ -152,6 +147,9 @@ while True:
 
                 # ✅ 매수 로직
                 if len(KRW_bought_list) < 5 and i not in KRW_sold_list and i not in KRW_bought_list:
+                    if get_balance(i.split('-')[1]) > 0:  # 이미 보유 중이면 매수하지 않음
+                        continue
+                        
                     k = get_optimal_k(i)
                     target_price = get_target_price(i, k)
                     ma15 = get_ma15(i)
@@ -168,8 +166,17 @@ while True:
                             upbit.buy_market_order(i, krw * 0.9995)
                             buy_prices[i] = current_price
                             logging.info(f"{i} 매수 실행! 매수가: {current_price}, 투자 금액: {krw}")
+                
+                time.sleep(5)
+        
+        else:
+            for i in KRW_bought_list:
+                sell_coin(i)
 
-                time.sleep(10)
+            KRW_bought_list = []
+            KRW_sold_list = []
+            
+            time.sleep(5)
 
     except Exception as e:
         logging.error(f"오류 발생: {e}")
