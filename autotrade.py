@@ -1,12 +1,12 @@
 import pyupbit
 import requests
-from bs4 import BeautifulSoup
 from pytz import timezone
 from datetime import datetime, timedelta
 import numpy as np
 import time
 import schedule
 import logging
+import concurrent.futures
 
 # 로그 설정
 logging.basicConfig(filename='trading_bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -17,47 +17,53 @@ secret = "ARaqQQFOx82OERax8bLyPy5ccxXG91aOggjYzrxu"
 # 시가총액 상위 30개 코인 고정 리스트
 ticker_list = [
     "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOGE", "KRW-ADA", "KRW-TRX", "KRW-LINK", "KRW-HBAR", "KRW-XLM",
-    "KRW-AVAX", "KRW-SHIB", "KRW-SUI", "KRW-DOT", "KRW-BCH", "KRW-UNI", "KRW-NEAR", "KRW-APT", "KRW-ONDO", "KRW-AAVE",
+    "KRW-AVAX", "KRW-SUI", "KRW-DOT", "KRW-BCH", "KRW-UNI", "KRW-NEAR", "KRW-APT", "KRW-ONDO", "KRW-AAVE",
     "KRW-ETC", "KRW-TRUMP", "KRW-MNT", "KRW-VET", "KRW-POL", "KRW-ALGO", "KRW-CRO", "KRW-RENDER", "KRW-ATOM", "KRW-ARB"
 ]
 
 # 특정 ticker의 최적 k 값 계산
-def get_ror(k, ticker, days=7):
-    """ 특정 기간 동안의 수익률을 계산하는 함수 """
+# ✅ 특정 기간 동안 최적의 k 값 찾기 (기존 코드 최적화)
+def get_best_k_for_days(ticker, days):
     df = pyupbit.get_ohlcv(ticker, count=days)
     if df is None or len(df) < days:
-        return 0  # 데이터가 부족하면 0 반환
+        return 0  # 데이터 부족 시 0 반환
 
-    df['range'] = (df['high'] - df['low']) * k
-    df['target'] = df['open'] + df['range'].shift(1)
-
-    df['ror'] = np.where(df['high'] > df['target'],
-                         df['close'] / df['target'],
-                         1)
-
-    return df['ror'].cumprod().iloc[-2]  # 마지막 날의 누적 수익률 반환
-
-def get_best_k_for_days(ticker, days):
-    """ 특정 기간(days)에 대한 최적의 k 값 찾기 """
     best_k = 0.1
     best_ror = 0
-    for k in np.arange(0.05, 1.0, 0.05):  # 0.05 단위로 더 세밀하게 탐색
-        ror = get_ror(k, ticker, days)
+    for k in np.arange(0.05, 1.0, 0.05):  # 0.05 단위로 탐색
+        df['range'] = (df['high'] - df['low']) * k
+        df['target'] = df['open'] + df['range'].shift(1)
+        df['ror'] = np.where(df['high'] > df['target'],
+                             df['close'] / df['target'],
+                             1)
+        ror = df['ror'].cumprod().iloc[-2]  # 마지막 날 수익률
         if ror > best_ror:
             best_ror = ror
             best_k = k
     return best_k
 
-def get_optimal_k(ticker):
-    """ 최근 7일, 14일, 30일 데이터를 활용하여 최적 k 값 도출 """
-    k_7 = get_best_k_for_days(ticker, 7)
-    k_14 = get_best_k_for_days(ticker, 14)
-    k_30 = get_best_k_for_days(ticker, 30)
+# ✅ 최적 K 값을 병렬 처리 (멀티스레딩 사용)
+def get_optimal_k_parallel(ticker_list):
+    global k_cache  # 캐시 사용
 
-    # 평균을 내서 최종 k 값 결정 (최근 7일에 가중치를 더 줄 수도 있음)
-    optimal_k = (k_7 * 0.5 + k_14 * 0.3 + k_30 * 0.2)
+    def calculate_k(ticker):
+        k_7 = get_best_k_for_days(ticker, 7)
+        k_14 = get_best_k_for_days(ticker, 14)
+        k_30 = get_best_k_for_days(ticker, 30)
+        optimal_k = round((k_7 * 0.5 + k_14 * 0.3 + k_30 * 0.2), 2)
+        return ticker, optimal_k
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(calculate_k, ticker_list)
+
+    # 결과를 캐시에 저장
+    for ticker, optimal_k in results:
+        k_cache[ticker] = optimal_k
+
+# ✅ K 값 미리 계산 후 사용
+def get_k_value(ticker):
+    return k_cache.get(ticker, 0.5)  # 캐시에 없으면 기본값 0.5 사용
     
-    return round(optimal_k, 2)  # 소수점 2자리까지 반올림
 # API 오류 방지를 위한 안전한 가격 조회 함수
 def get_current_price(ticker):
     """현재가 조회"""
@@ -126,7 +132,12 @@ def sell_coin(coin, percent=1.0):
 
     time.sleep(0.5)
 
-
+def reset_daily_data():
+    global buy_prices
+    global k_cache
+    buy_prices.clear()  # 딕셔너리 초기화
+    k_cache.clear()
+    
 # 로그인
 upbit = pyupbit.Upbit(access, secret)
 logging.info("Auto trade started")
@@ -135,9 +146,12 @@ logging.info("Auto trade started")
 KRW_bought_list = []
 KRW_sold_list = []
 buy_prices = {}
+k_cache = {}
+get_optimal_k_parallel(ticker_list)
 
 # 일정 시간마다 매도 실행
-schedule.every().day.at("09:55").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
+schedule.every().day.at("08:57").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
+schedule.every().day.at("08:55").do(reset_daily_data)
 
 while True:
     try:
@@ -173,7 +187,7 @@ while True:
                     if get_balance(i.split('-')[1]) > 0:  # 이미 보유 중이면 매수하지 않음
                         continue
                         
-                    k = get_optimal_k(i)
+                    k = get_k_value(i)
                     target_price = get_target_price(i, k)
                     ma15 = get_ma15(i)
                     rsi = get_rsi(i)
@@ -191,13 +205,19 @@ while True:
                             logging.info(f"{i} 매수 실행! 매수가: {current_price}, 투자 금액: {krw}")
                 
                 time.sleep(3)
+                
+        if (now.hour == 9 and now.minute >= 55) or (now.hour == 10 and now.minute == 0):
+            get_optimal_k_parallel(ticker_list)
         
         else:
             for i in KRW_bought_list:
                 sell_coin(i)
-
+                time.sleep(1)
+                
             KRW_bought_list = []
             KRW_sold_list = []
+            buy_prices = {}
+            k_cache = {}
             
             time.sleep(3)
 
