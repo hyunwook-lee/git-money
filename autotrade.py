@@ -206,7 +206,7 @@ while True:
         if (now.hour == 9 and now.minute >= 55) or (now.hour == 10 and now.minute == 0):
             get_optimal_k_parallel(ticker_list)
         
-        else:
+        if (now.hour == 8 and now.minute >= 30) or (now.hour == 9 and now.minute < 55):
             for i in KRW_bought_list:
                 sell_coin(i)
                 time.sleep(1)
