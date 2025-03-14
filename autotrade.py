@@ -22,28 +22,42 @@ ticker_list = [
 ]
 
 # 특정 ticker의 최적 k 값 계산
-def get_ror(k=0.5, ticker="KRW-BTC"):
-    df = pyupbit.get_ohlcv(ticker, count=7)
+def get_ror(k, ticker, days=7):
+    """ 특정 기간 동안의 수익률을 계산하는 함수 """
+    df = pyupbit.get_ohlcv(ticker, count=days)
+    if df is None or len(df) < days:
+        return 0  # 데이터가 부족하면 0 반환
+
     df['range'] = (df['high'] - df['low']) * k
     df['target'] = df['open'] + df['range'].shift(1)
-    
+
     df['ror'] = np.where(df['high'] > df['target'],
                          df['close'] / df['target'],
                          1)
 
-    ror = df['ror'].cumprod().iloc[-2]
-    return ror
+    return df['ror'].cumprod().iloc[-2]  # 마지막 날의 누적 수익률 반환
 
-def get_optimal_k(ticker):
+def get_best_k_for_days(ticker, days):
+    """ 특정 기간(days)에 대한 최적의 k 값 찾기 """
     best_k = 0.1
     best_ror = 0
-    for k in np.arange(0.1, 1.0, 0.1):
-        ror = get_ror(k, ticker)
+    for k in np.arange(0.05, 1.0, 0.05):  # 0.05 단위로 더 세밀하게 탐색
+        ror = get_ror(k, ticker, days)
         if ror > best_ror:
             best_ror = ror
             best_k = k
     return best_k
 
+def get_optimal_k(ticker):
+    """ 최근 7일, 14일, 30일 데이터를 활용하여 최적 k 값 도출 """
+    k_7 = get_best_k_for_days(ticker, 7)
+    k_14 = get_best_k_for_days(ticker, 14)
+    k_30 = get_best_k_for_days(ticker, 30)
+
+    # 평균을 내서 최종 k 값 결정 (최근 7일에 가중치를 더 줄 수도 있음)
+    optimal_k = (k_7 * 0.5 + k_14 * 0.3 + k_30 * 0.2)
+    
+    return round(optimal_k, 2)  # 소수점 2자리까지 반올림
 # API 오류 방지를 위한 안전한 가격 조회 함수
 def get_current_price(ticker):
     """현재가 조회"""
@@ -55,7 +69,10 @@ def get_target_price(ticker, k):
     return df.iloc[-2]['close'] + (df.iloc[-2]['high'] - df.iloc[-2]['low']) * k if df is not None else None
 
 def get_risk_price(ticker, buy_price):
-    return buy_price * 0.96 if buy_price else None  # 손절가 = 매수가 * 0.96 (-4%)
+    return buy_price * 0.975 if buy_price else None  # 손절가 = 매수가 * 0.975 (-3.5%)
+
+def get_profit_price(ticker, buy_price):
+    return buy_price * 1.10 if buy_price else None  # 익절가 = 매수가 * 1.10 (+10%)
 
 # 15일 이동 평균 + RSI 지표 추가
 def get_ma15(ticker):
@@ -120,7 +137,7 @@ KRW_sold_list = []
 buy_prices = {}
 
 # 일정 시간마다 매도 실행
-schedule.every().day.at("09:57").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
+schedule.every().day.at("09:55").do(lambda: (KRW_bought_list.clear(), KRW_sold_list.clear()))
 
 while True:
     try:
@@ -128,7 +145,7 @@ while True:
         now = datetime.now()
 
         # ✅ 10시에서 다음날 8시반 까지 매수
-        if now.hour >= 10 or (now.hour == 8 and now.minute < 30):
+        if now.hour >= 10 or now.hour < 8 or (now.hour == 8 and now.minute < 30):
             for i in ticker_list:
                 current_price = get_current_price(i)
                 if current_price is None:
@@ -141,6 +158,12 @@ while True:
 
                     if risk_price is not None and current_price < risk_price:
                         logging.info(f"{i} 손절 매도! 현재가 {current_price} < 손절가 {risk_price}")
+                        sell_coin(i)
+                        KRW_sold_list.append(i)
+                        KRW_bought_list.remove(i)
+                        
+                    elif profit_price is not None and current_price > profit_price:
+                        logging.info(f"{i} 익절 매도! 현재가 {current_price} > 익절가 {profit_price}")
                         sell_coin(i)
                         KRW_sold_list.append(i)
                         KRW_bought_list.remove(i)
@@ -158,7 +181,7 @@ while True:
                     if target_price is None or ma15 is None or rsi is None:
                         continue  # 데이터 부족하면 건너뜀
 
-                    if target_price < current_price and ma15 < current_price and rsi < 70:
+                    if target_price < current_price and ma15 < current_price and 30 < rsi < 70:
                         KRW_bought_list.append(i)
                         krw = get_balance('KRW') / (6 - len(KRW_bought_list))
 
@@ -167,7 +190,7 @@ while True:
                             buy_prices[i] = current_price
                             logging.info(f"{i} 매수 실행! 매수가: {current_price}, 투자 금액: {krw}")
                 
-                time.sleep(5)
+                time.sleep(3)
         
         else:
             for i in KRW_bought_list:
@@ -176,7 +199,7 @@ while True:
             KRW_bought_list = []
             KRW_sold_list = []
             
-            time.sleep(5)
+            time.sleep(3)
 
     except Exception as e:
         logging.error(f"오류 발생: {e}")
