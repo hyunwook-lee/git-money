@@ -184,9 +184,6 @@ while True:
 
                 # ✅ 매수 로직
                 if len(KRW_bought_list) < 5 and i not in KRW_sold_list and i not in KRW_bought_list:
-                    if get_balance(i.split('-')[1]) > 0:  # 이미 보유 중이면 매수하지 않음
-                        continue
-                        
                     k = get_k_value(i)
                     target_price = get_target_price(i, k)
                     ma15 = get_ma15(i)
