@@ -169,6 +169,7 @@ while True:
                 if i in KRW_bought_list:
                     buy_price = buy_prices.get(i, None)
                     risk_price = get_risk_price(i, buy_price)
+                    profit_price = get_profit_price(i, buy_price)
 
                     if risk_price is not None and current_price < risk_price:
                         logging.info(f"{i} 손절 매도! 현재가 {current_price} < 손절가 {risk_price}")
